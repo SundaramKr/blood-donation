@@ -473,6 +473,8 @@ function renderChatMessages() {
 
   if (!chat || chat.messages.length === 0) {
     renderWelcomeMessage();
+    // Ensure input textarea is correctly sized when there are no prior messages
+    autoResizeTextarea();
     return;
   }
 
@@ -482,6 +484,8 @@ function renderChatMessages() {
   });
 
   scrollToBottom();
+  // Ensure textarea height is updated after rendering messages
+  autoResizeTextarea();
 }
 
 function appendMessage(role, content, save = true) {
