@@ -3,6 +3,7 @@
  * Main Application Script
  */
 
+
 const STORAGE_KEYS = {
   CHATS: "bloodconnect_chats",
   ACTIVE_CHAT: "bloodconnect_active_chat",
@@ -594,30 +595,24 @@ function autoResizeTextarea() {
    ============================================ */
 
 async function sendToOpenAI() {
-  const apiKey = window.OPENAI_API_KEY;
-
-  if (!apiKey || apiKey === "%%OPENAI_API_KEY%%") {
-    throw new Error("OpenAI API key is not configured. Please add OPENAI_API_KEY environment variable in Netlify.");
-  }
 
   const messages = getConversationHistory().map(({ role, content }) => ({
     role,
     content,
   }));
 
-  const response = await fetch("https://api.openai.com/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify({
-      model: "gpt-4o-mini",
-      messages: [{ role: "system", content: SYSTEM_PROMPT }, ...messages],
-      max_tokens: 1024,
-      temperature: 0.7,
-    }),
-  });
+  const response = await fetch("/.netlify/functions/chat", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    messages: [
+      { role: "system", content: SYSTEM_PROMPT },
+      ...messages
+    ]
+  }),
+});
 
   const data = await response.json();
 
