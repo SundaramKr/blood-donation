@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Blood Donation & Emergency Connect Bot — Get blood donation guidance, emergency support, eligibility checks, and compatibility information.">
+  <title>Blood Donation & Emergency Connect Bot</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.6/dist/purify.min.js"></script>
+  <script>
+    // Netlify will replace %%OPENAI_API_KEY%% with the actual environment variable during build
+    window.OPENAI_API_KEY = "%%OPENAI_API_KEY%%";
+  </script>
+</head>
+<body>
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="logo">
+        <svg class="logo-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+          <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+        </svg>
+        <span>BloodConnect</span>
+      </div>
+      <button class="sidebar-close" id="sidebarClose" aria-label="Close sidebar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="#home" class="nav-link active" data-section="home">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        Home
+      </a>
+      <a href="#chat" class="nav-link" data-section="chat">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+        Chat
+      </a>
+      <a href="#chats" class="nav-link" data-section="chats">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/><line x1="9" y1="10" x2="15" y2="10"/><line x1="9" y1="14" x2="13" y2="14"/></svg>
+        My Chats
+      </a>
+      <a href="#emergency" class="nav-link" data-section="emergency">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        Emergency Request
+      </a>
+      <a href="#guide" class="nav-link" data-section="guide">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>
+        Donation Guide
+      </a>
+      <a href="#eligibility" class="nav-link" data-section="eligibility">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        Eligibility Check
+      </a>
+      <a href="#faqs" class="nav-link" data-section="faqs">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        FAQs
+      </a>
+    </nav>
+    <div class="sidebar-footer">
+      <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">
+        <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+        <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+        <span>Dark Mode</span>
+      </button>
+    </div>
+  </aside>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <!-- Top Bar -->
+    <header class="topbar">
+      <button class="menu-btn" id="menuBtn" aria-label="Open menu">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+      <div class="topbar-title">
+        <svg class="topbar-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+          <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+        </svg>
+        Blood Donation Bot
+      </div>
+      <button class="theme-toggle-mobile" id="themeToggleMobile" aria-label="Toggle dark mode">
+        <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/></svg>
+        <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+      </button>
+    </header>
+
+    <!-- Home Section -->
+    <section id="home" class="section section-home active">
+      <!-- Hero -->
+      <div class="hero">
+        <div class="hero-bg"></div>
+        <div class="hero-content">
+          <div class="hero-badge">
+            <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+            Saving Lives Together
+          </div>
+          <h1 class="hero-title">Blood Donation &amp; Emergency Connect Bot</h1>
+          <p class="hero-subtitle">Your intelligent companion for blood donation information, emergency blood requests, donor eligibility, compatibility charts, and life-saving guidance — available 24/7.</p>
+          <div class="hero-actions">
+            <button class="btn btn-primary" id="startChatBtn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+              Start Chat
+            </button>
+            <button class="btn btn-outline" id="emergencyBtn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
+              Emergency Request
+            </button>
+          </div>
+        </div>
+        <div class="hero-visual">
+          <div class="hero-card glass">
+            <div class="pulse-ring"></div>
+            <svg class="hero-heart" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+            </svg>
+            <p class="hero-card-text">Every donation can save up to <strong>3 lives</strong></p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Statistics -->
+      <div class="stats-section">
+        <div class="container">
+          <h2 class="section-title">Impact &amp; Awareness</h2>
+          <div class="stats-grid">
+            <div class="stat-card animate-on-scroll">
+              <div class="stat-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
+              </div>
+              <div class="stat-number" data-target="118">0</div>
+              <div class="stat-label">Million donations annually worldwide</div>
+            </div>
+            <div class="stat-card animate-on-scroll">
+              <div class="stat-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              </div>
+              <div class="stat-number" data-target="3">0</div>
+              <div class="stat-label">Seconds — someone needs blood</div>
+            </div>
+            <div class="stat-card animate-on-scroll">
+              <div class="stat-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+              </div>
+              <div class="stat-number" data-target="38">0</div>
+              <div class="stat-label">% of population eligible to donate</div>
+            </div>
+            <div class="stat-card animate-on-scroll">
+              <div class="stat-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+              </div>
+              <div class="stat-number" data-target="56">0</div>
+              <div class="stat-label">Days between whole blood donations</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Features -->
+      <div class="features-section">
+        <div class="container">
+          <h2 class="section-title">What We Offer</h2>
+          <p class="section-desc">Comprehensive blood donation support powered by AI</p>
+          <div class="features-grid">
+            <div class="feature-card animate-on-scroll">
+              <div class="feature-icon emergency">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
+              </div>
+              <h3>Emergency Blood Support</h3>
+              <p>Instant guidance during blood emergencies and steps to connect with hospitals and blood banks.</p>
+            </div>
+            <div class="feature-card animate-on-scroll">
+              <div class="feature-icon guide">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>
+              </div>
+              <h3>Donor Guidance</h3>
+              <p>Complete walkthrough of registration, screening, donation, recovery, and aftercare.</p>
+            </div>
+            <div class="feature-card animate-on-scroll">
+              <div class="feature-icon compat">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+              </div>
+              <h3>Blood Group Compatibility</h3>
+              <p>Learn who can donate to whom and who can receive from whom across all blood types.</p>
+            </div>
+            <div class="feature-card animate-on-scroll">
+              <div class="feature-icon eligibility">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+              </div>
+              <h3>Eligibility Checker</h3>
+              <p>Age, weight, health requirements, waiting periods, and common restrictions explained.</p>
+            </div>
+            <div class="feature-card animate-on-scroll">
+              <div class="feature-icon faq">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+              </div>
+              <h3>FAQ Assistance</h3>
+              <p>Answers to common questions about myths, facts, benefits, and donation procedures.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Chat Section -->
+    <section id="chat" class="section section-chat">
+      <div class="chat-wrapper">
+        <div class="chat-container glass">
+          <div class="chat-header">
+            <div class="chat-header-info">
+              <div class="bot-avatar-header">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+              </div>
+              <div>
+                <h2>Blood Connect Assistant</h2>
+                <span class="status-online">Online — Ready to help</span>
+              </div>
+            </div>
+            <div class="chat-header-actions">
+              <button class="icon-btn" id="newChatBtn" title="New chat">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              </button>
+              <button class="icon-btn" id="exportChatBtn" title="Export chat history">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              </button>
+              <button class="icon-btn" id="clearChatBtn" title="Clear chat">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- Quick Actions -->
+          <div class="quick-actions">
+            <button class="quick-btn" data-prompt="How can I find a blood donor near me?">Find Blood Donor</button>
+            <button class="quick-btn emergency-quick" data-prompt="I need emergency blood urgently. What steps should I take?">Emergency Blood Needed</button>
+            <button class="quick-btn" data-prompt="Can I donate blood? What are the eligibility requirements?">Can I Donate Blood?</button>
+            <button class="quick-btn" data-prompt="Explain blood group compatibility — who can donate to whom and receive from whom?">Blood Compatibility</button>
+            <button class="quick-btn" data-prompt="How do I find the nearest blood bank?">Nearest Blood Bank</button>
+            <button class="quick-btn" data-prompt="What are the health and community benefits of donating blood?">Donation Benefits</button>
+            <button class="quick-btn" data-prompt="Check my eligibility to donate blood. What are age, weight, and health requirements?">Eligibility Check</button>
+            <button class="quick-btn" data-prompt="Answer common FAQs about blood donation myths and facts.">FAQ</button>
+          </div>
+
+          <!-- Messages -->
+          <div class="chat-messages" id="chatMessages">
+            <div class="message bot-message">
+              <div class="message-avatar bot-avatar">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+              </div>
+              <div class="message-content">
+                <div class="message-bubble">
+                  <p>Hello! I'm your Blood Donation &amp; Emergency Connect assistant. I can help with blood compatibility, donor eligibility, emergency guidance, donation procedures, and FAQs. How can I assist you today?</p>
+                </div>
+                <span class="message-time" id="welcomeTime"></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Typing Indicator -->
+          <div class="typing-indicator hidden" id="typingIndicator">
+            <div class="message-avatar bot-avatar">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+            </div>
+            <div class="typing-dots">
+              <span></span><span></span><span></span>
+            </div>
+          </div>
+
+          <!-- Loading Spinner -->
+          <div class="loading-overlay hidden" id="loadingOverlay">
+            <div class="spinner"></div>
+            <p>Connecting to assistant...</p>
+          </div>
+
+          <!-- Input Area -->
+          <div class="chat-input-area">
+            <div class="input-wrapper">
+              <button class="icon-btn voice-btn" id="voiceBtn" title="Voice input">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+              </button>
+              <textarea id="chatInput" placeholder="Type your message... (Press Enter to send)" rows="1" maxlength="2000"></textarea>
+              <button class="icon-btn tts-btn" id="ttsToggleBtn" title="Toggle text-to-speech">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 010 14.14M15.54 8.46a5 5 0 010 7.07"/></svg>
+              </button>
+              <button class="send-btn" id="sendBtn" title="Send message">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+              </button>
+            </div>
+            <p class="input-hint">Powered by OpenAI · Not a substitute for professional medical advice</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- My Chats Section -->
+    <section id="chats" class="section section-page">
+      <div class="container">
+        <div class="chats-page-header">
+          <div class="page-header">
+            <h2>My Chats</h2>
+            <p>View and manage your conversation history</p>
+          </div>
+          <button class="btn btn-primary" id="newChatFromListBtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            New Chat
+          </button>
+        </div>
+        <div class="chats-list" id="chatsList">
+          <!-- Populated by JavaScript -->
+        </div>
+      </div>
+    </section>
+
+    <!-- Emergency Section -->
+    <section id="emergency" class="section section-page">
+      <div class="container">
+        <div class="page-header">
+          <span class="priority-badge">High Priority</span>
+          <h2>Emergency Blood Request</h2>
+          <p>Submit an emergency blood request. For life-threatening situations, call emergency services immediately.</p>
+        </div>
+        <form class="emergency-form glass" id="emergencyForm">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="patientName">Patient Name</label>
+              <input type="text" id="patientName" name="patientName" placeholder="Enter patient name" required>
+            </div>
+            <div class="form-group">
+              <label for="bloodGroup">Blood Group Required</label>
+              <select id="bloodGroup" name="bloodGroup" required>
+                <option value="">Select blood group</option>
+                <option value="A+">A+</option>
+                <option value="A-">A-</option>
+                <option value="B+">B+</option>
+                <option value="B-">B-</option>
+                <option value="AB+">AB+</option>
+                <option value="AB-">AB-</option>
+                <option value="O+">O+</option>
+                <option value="O-">O-</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="location">Location / Hospital</label>
+              <input type="text" id="location" name="location" placeholder="City, hospital name, or address" required>
+            </div>
+            <div class="form-group">
+              <label for="contactNumber">Contact Number</label>
+              <input type="tel" id="contactNumber" name="contactNumber" placeholder="+1 234 567 8900" required>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="unitsNeeded">Units Needed</label>
+            <input type="number" id="unitsNeeded" name="unitsNeeded" min="1" max="10" value="1" required>
+          </div>
+          <div class="form-group">
+            <label for="urgency">Urgency Level</label>
+            <select id="urgency" name="urgency" required>
+              <option value="critical">Critical — Immediate</option>
+              <option value="urgent">Urgent — Within 24 hours</option>
+              <option value="moderate">Moderate — Within 48 hours</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="additionalInfo">Additional Information</label>
+            <textarea id="additionalInfo" name="additionalInfo" rows="3" placeholder="Any other details..."></textarea>
+          </div>
+          <button type="submit" class="btn btn-primary btn-full">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
+            Submit Emergency Request
+          </button>
+        </form>
+        <div class="emergency-steps glass">
+          <h3>Emergency Steps</h3>
+          <ol>
+            <li>Call emergency services (911 / local emergency number) if life-threatening.</li>
+            <li>Contact the nearest hospital blood bank immediately.</li>
+            <li>Provide patient blood group, units needed, and location.</li>
+            <li>Reach out to registered blood donation organizations.</li>
+            <li>Use social media and community networks responsibly to find donors.</li>
+          </ol>
+        </div>
+      </div>
+    </section>
+
+    <!-- Donation Guide Section -->
+    <section id="guide" class="section section-page">
+      <div class="container">
+        <div class="page-header">
+          <h2>Donation Guide</h2>
+          <p>Understanding the complete blood donation process</p>
+        </div>
+        <div class="guide-steps">
+          <div class="guide-step glass animate-on-scroll">
+            <div class="step-number">1</div>
+            <h3>Registration</h3>
+            <p>Provide identification and complete a registration form at the donation center.</p>
+          </div>
+          <div class="guide-step glass animate-on-scroll">
+            <div class="step-number">2</div>
+            <h3>Screening</h3>
+            <p>Health questionnaire, mini physical exam, hemoglobin check, and blood pressure measurement.</p>
+          </div>
+          <div class="guide-step glass animate-on-scroll">
+            <div class="step-number">3</div>
+            <h3>Donation</h3>
+            <p>Whole blood donation takes about 10–15 minutes. A sterile needle collects approximately 450ml.</p>
+          </div>
+          <div class="guide-step glass animate-on-scroll">
+            <div class="step-number">4</div>
+            <h3>Recovery</h3>
+            <p>Rest for 10–15 minutes, enjoy refreshments, and avoid strenuous activity for the rest of the day.</p>
+          </div>
+          <div class="guide-step glass animate-on-scroll">
+            <div class="step-number">5</div>
+            <h3>Aftercare</h3>
+            <p>Stay hydrated, eat iron-rich foods, keep the bandage on for several hours, and report any concerns.</p>
+          </div>
+        </div>
+        <button class="btn btn-primary" id="guideChatBtn">Ask the Bot About Donation</button>
+      </div>
+    </section>
+
+    <!-- Eligibility Section -->
+    <section id="eligibility" class="section section-page">
+      <div class="container">
+        <div class="page-header">
+          <h2>Eligibility Check</h2>
+          <p>General eligibility requirements for blood donation</p>
+        </div>
+        <div class="eligibility-grid">
+          <div class="eligibility-card glass">
+            <h3>Age Requirements</h3>
+            <ul>
+              <li>Minimum age: 17 years (16 with parental consent in some regions)</li>
+              <li>Maximum age: No upper limit if healthy (varies by country)</li>
+              <li>First-time donors: Must meet minimum age requirement</li>
+            </ul>
+          </div>
+          <div class="eligibility-card glass">
+            <h3>Weight Requirements</h3>
+            <ul>
+              <li>Minimum weight: 50 kg (110 lbs) typically required</li>
+              <li>Must be in good general health</li>
+              <li>Body weight ensures safe donation volume</li>
+            </ul>
+          </div>
+          <div class="eligibility-card glass">
+            <h3>Health Requirements</h3>
+            <ul>
+              <li>Normal hemoglobin levels (12.5 g/dL for women, 13.0 g/dL for men)</li>
+              <li>Normal blood pressure and pulse</li>
+              <li>No active infections or fever</li>
+              <li>Feeling well on donation day</li>
+            </ul>
+          </div>
+          <div class="eligibility-card glass">
+            <h3>Waiting Periods</h3>
+            <ul>
+              <li>Whole blood: 56 days between donations</li>
+              <li>Platelets: 7 days (up to 24 times/year)</li>
+              <li>After surgery: varies (consult blood bank)</li>
+              <li>After tattoos/piercings: 3–12 months (varies)</li>
+            </ul>
+          </div>
+          <div class="eligibility-card glass">
+            <h3>Common Restrictions</h3>
+            <ul>
+              <li>Recent travel to malaria-endemic areas</li>
+              <li>Certain medications (antibiotics, blood thinners)</li>
+              <li>Pregnancy and recent childbirth</li>
+              <li>High-risk behaviors (as per screening guidelines)</li>
+            </ul>
+          </div>
+        </div>
+        <button class="btn btn-primary" id="eligibilityChatBtn">Check My Eligibility with Bot</button>
+      </div>
+    </section>
+
+    <!-- FAQs Section -->
+    <section id="faqs" class="section section-page">
+      <div class="container">
+        <div class="page-header">
+          <h2>Frequently Asked Questions</h2>
+          <p>Common questions about blood donation</p>
+        </div>
+        <div class="faq-list">
+          <details class="faq-item glass">
+            <summary>Is blood donation safe?</summary>
+            <p>Yes. Sterile, single-use equipment is used for every donor. You cannot get diseases from donating blood.</p>
+          </details>
+          <details class="faq-item glass">
+            <summary>How often can I donate blood?</summary>
+            <p>Whole blood can be donated every 56 days. Platelets can be donated more frequently — every 7 days up to 24 times per year.</p>
+          </details>
+          <details class="faq-item glass">
+            <summary>Does donating blood weaken my immune system?</summary>
+            <p>No. Your body replenishes donated blood within a few weeks. Donating does not weaken your immune system.</p>
+          </details>
+          <details class="faq-item glass">
+            <summary>Which blood type is the universal donor?</summary>
+            <p>O- is the universal donor for red blood cells. AB+ is the universal recipient.</p>
+          </details>
+          <details class="faq-item glass">
+            <summary>What should I eat before donating?</summary>
+            <p>Eat a healthy meal and drink plenty of water. Avoid fatty foods before donation as they can affect test results.</p>
+          </details>
+          <details class="faq-item glass">
+            <summary>Can I donate if I have a tattoo?</summary>
+            <p>Most centers require a waiting period of 3–12 months after getting a tattoo or piercing, depending on local regulations.</p>
+          </details>
+        </div>
+        <button class="btn btn-primary" id="faqChatBtn">Ask More Questions</button>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <div class="container">
+        <p>&copy; 2026 Blood Donation &amp; Emergency Connect Bot</p>
+        <p class="footer-disclaimer">This bot provides informational guidance only. Always consult healthcare professionals for medical decisions.</p>
+      </div>
+    </footer>
+  </main>
+
+  <!-- Toast Notification -->
+  <div class="toast hidden" id="toast"></div>
+
+  <script src="script.js"></script>
+</body>
+</html>
